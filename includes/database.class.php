@@ -15,7 +15,7 @@
         protected $adv;
         protected $prefix;
 
-        function __construct($operator, $service, $fromDate, $toDate, $adv)
+        function __construct($operator, $service, $fromDate, $toDate, $adv = '')
         {
             $this->operator = $operator;
             $this->service  = $service ;
