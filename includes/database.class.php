@@ -6,6 +6,7 @@
         protected $dbTable;
         protected $dbUser   = 'root';
         protected $dbPass   = '';
+        // protected $dbPass   = 'mysql@1';
         protected $dbHost   = 'localhost';
 
         protected $operator;
@@ -14,34 +15,50 @@
         protected $toDate;
         protected $adv;
         protected $prefix;
+        protected $reportType;
 
-        function __construct($operator, $service, $fromDate, $toDate, $adv = '')
+        function __construct($operator, $service, $fromDate, $toDate, $adv = '', $reportType = '')
         {
-            $this->operator = $operator;
-            $this->service  = $service ;
-            $this->adv      = $adv;
-            $this->fromDate = $fromDate ;
-            $this->toDate   = $toDate;
+            $this->operator     = $operator;
+            $this->service      = $service ;
+            $this->adv          = $adv;
+            $this->fromDate     = $fromDate ;
+            $this->toDate       = $toDate;
+            $this->reportType   = $reportType;
             $this->init();
         }
 
         public function init()
-        {            
-            if($this->service == 'fb'){
-                $this->setDB('cpa'); 
-                if($this->operator == 'robi' || $this->operator == 'airtel'){
-                    $this->dbTable  = 'cpaclick_robi';
+        {
+            if($this->reportType == 'cpaReport'){
+                if($this->service == 'fb'){
+                    $this->setDB('cpa'); 
+                    if($this->operator == 'robi' || $this->operator == 'airtel'){
+                        $this->dbTable  = 'cpaclick_robi';
+                    }
+                    else{
+                        $this->dbTable  = 'cpaclick_blink';
+                    }
                 }
-                else{
-                    $this->dbTable  = 'cpaclick_blink';
+
+                else{ // Cycas Games
+                    $this->setDB('sms');
+                    $this->dbTable  = 'zcycas_cpa_airtel_cysgame';
+                    $this->fromDate = $this->fromDate.' 00:00:00';
+                    $this->toDate   = $this->toDate.' 23:59:59';
                 }
             }
-
-            else{ // Cycas Games
-                $this->setDB('sms');
-                $this->dbTable  = 'zcycas_cpa_airtel_cysgame';
+            else{ // Deactivation and Duration Report
                 $this->fromDate = $this->fromDate.' 00:00:00';
-                $this->toDate = $this->toDate.' 23:59:59';
+                $this->toDate   = $this->toDate.' 23:59:59';
+                if($this->operator == 'robi' || $this->operator == 'airtel'){
+                    $this->setDB('sms');
+                    $this->dbTable  = 'robi_subscribers';
+                }
+                else{
+                    $this->setDB('gpwap');
+                    $this->dbTable  = 'subscribers';
+                }
             }
         }
 
@@ -84,14 +101,52 @@
             else{
                 $query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
             }
-
-            //$query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE msisdn LIKE '". $prefix ."%' AND adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
             $stmt   = $this->pdo->prepare($query);
-            echo $query;
-            echo '<br>';
-            echo $this->db;
-            echo '<br>';
-            echo $this->dbTable;
+
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        }
+
+        public function getDurationData()
+        {
+            if($this->operator == 'robi'){
+                $prefix = '88018';
+                $query  = "SELECT DISTINCT msisdn , DATE(subs_date) AS subs_date, DATE(unsubs_date) AS unsubs_date FROM " .$this->dbTable. " WHERE msisdn LIKE '". $prefix ."%' AND service = '". $this->service ."' AND subs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' ORDER BY  subs_date DESC";
+            }
+
+            elseif($this->operator == 'airtel'){
+                $prefix = '88016';
+                $query  = "SELECT DISTINCT msisdn , DATE(subs_date) AS subs_date, DATE(unsubs_date) AS unsubs_date FROM " .$this->dbTable. " WHERE msisdn LIKE '". $prefix ."%' AND service = '". $this->service ."' AND subs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' ORDER BY  subs_date DESC";
+            }
+
+            else{
+                $query  = "SELECT DISTINCT msisdn , DATE(subs_date) AS subs_date, DATE(unsubs_date) AS unsubs_date FROM " .$this->dbTable. " WHERE service = '". $this->service ."' AND subs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' ORDER BY  subs_date DESC";
+            }
+
+            $stmt   = $this->pdo->prepare($query);
+            
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+            
+        }
+
+        public function getDeactivationData()
+        {
+            if($this->operator == 'robi'){
+                $prefix = '88018';
+                $query  = "SELECT COUNT(msisdn) as deactivation, DATE(unsubs_date) as date FROM " . $this->dbTable . " WHERE msisdn LIKE '". $prefix ."%' AND service = '" . $this->service . "' AND unsubs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' GROUP BY date";
+            }
+
+            elseif($this->operator == 'airtel'){
+                $prefix = '88016';
+                $query  = "SELECT COUNT(msisdn) as deactivation, DATE(unsubs_date) as date FROM " . $this->dbTable . " WHERE msisdn LIKE '". $prefix ."%' AND service = '" . $this->service . "' AND unsubs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' GROUP BY date";
+            }
+
+            else{
+                $query  = "SELECT COUNT(msisdn) as deactivation, DATE(unsubs_date) as date FROM " . $this->dbTable . " WHERE service = '" . $this->service . "' AND unsubs_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' AND status = '0' GROUP BY date";
+            }
+            $stmt   = $this->pdo->prepare($query);
+            // echo $query;
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         }

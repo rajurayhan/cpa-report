@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	$service   = $_POST["service"];
 	$adv   	   = $_POST["adv"];
 
-	$db 	= new database($operator, $service, $fromDate, $toDate, $adv);
+	$db 	= new database($operator, $service, $fromDate, $toDate, $adv, 'cpaReport');
 	$db->connect();
 	$data = $db->getCPAData();
 	// var_dump($data);
@@ -84,11 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 					if($data){
 
 						$total = 0;
-						// foreach ($data as $d) {
-						// 	echo $d->date.'--'.$d->activation;
-						// 	echo '<br>';
-						// }
-						echo "<h2>Activation Report: ". mb_strtoupper($operator) ." - ". $adv ." - " . $service . "</h2>";
+						echo "<h4>Activation Report: ". mb_strtoupper($operator) ." - ". $adv ." - " . $service . "</h4>";
 						echo "<table class='table table-hover'>
 			            <tr>
 			            <th>Date</th>
