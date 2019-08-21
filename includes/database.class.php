@@ -34,10 +34,10 @@
                 if($this->service == 'fb'){
                     $this->setDB('cpa'); 
                     if($this->operator == 'robi' || $this->operator == 'airtel'){
-                        $this->dbTable  = 'cpaclick_robi';
+                        $this->dbTable  = 'cpaClick_robi';
                     }
                     else{
-                        $this->dbTable  = 'cpaclick_blink';
+                        $this->dbTable  = 'cpaClick_blink';
                     }
                 }
 
@@ -102,7 +102,7 @@
                 $query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
             }
             $stmt   = $this->pdo->prepare($query);
-
+            
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         }

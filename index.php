@@ -1,113 +1,384 @@
 <?php
-require_once 'includes/database.class.php';
-
-$data = '';
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-	$fromDate  = $_POST["fromDate"];
-	$toDate    = $_POST["toDate"];
-	$operator  = $_POST["operator"];
-	$service   = $_POST["service"];
-	$adv   	   = $_POST["adv"];
-
-	$db 	= new database($operator, $service, $fromDate, $toDate, $adv, 'cpaReport');
-	$db->connect();
-	$data = $db->getCPAData();
-	// var_dump($data);
-	$db->close();
-}
-
+    session_start();
+    if(!isset($_SESSION['user_name']) || empty($_SESSION['user_name'])){
+        header('location: login.php');
+        exit;
+    }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
-<head>
-	<title>CPA Report</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-</head>
-<body>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Reporting Panel || Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta content="Full Reporting Panel for Adbox Services" name="description" />
+        <meta content="Raju Rayhan" name="author" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-	<div class="container">
-		<h2>CPA Report</h2>
-		<div class="row">
-			<div class="col-md-12">
-				<form class="form-inline" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-					<label class="sr-only" for="inlineFormInputName2">From Date</label>
-					<input type="date" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" name="fromDate" value="<?php if(isset($fromDate)) echo $fromDate ?>">
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="assets/images/favicon.ico">
 
-					<label class="sr-only" for="inlineFormInputGroupUsername2">To Date</label>
-					<div class="input-group mb-2 mr-sm-2">
+        <!--Morris Chart CSS -->
+        <link rel="stylesheet" href="assets/plugins/morris/morris.css">
 
-						<input type="date" class="form-control" id="inlineFormInputGroupUsername2"  name="toDate" value="<?php if(isset($toDate)) echo $toDate ?>">
-					</div>
+        <!-- App css -->
+        <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/icons.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/metismenu.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/style.css" rel="stylesheet" type="text/css" />
 
-					<div class="input-group mb-2 mr-sm-2">
-						<select class="form-control" name="operator" required>
-							<option value="" selected="">Operator</option>
-							<option value="blink">Blink</option>
-							<option value="airtel">Airtel</option>
-							<option value="robi">Robi</option>
-						</select>
-					</div>
+        <script src="assets/js/modernizr.min.js"></script>
 
-					<div class="input-group mb-2 mr-sm-2">                
-						<select class="form-control" name="service" required>
-							<option value="" selected="">Service</option>
-							<option value="fb">FunBox</option>
-							<option value="cycas">CYCAS</option>
-						</select>
-					</div>
+    </head>
 
-					<div class="input-group mb-2 mr-sm-2">                
-						<select required="" name="adv" class="form-control" id="advertiser" data-toggle="tooltip" data-placement="auto" title="" data-original-title="Advertiser">
-							<option value="" selected="">Advertiser</option>
-							<option value="bitterstrawberry">BitterStrawberry</option>
-							<option value="tiger">Tiger Ads</option>
-							<option value="kimia">Kimia Solvers</option>
-							<option value="level23">Level23</option>
-							<option value="google">Google Ads</option>
-						</select>
-					</div>
+
+    <body>
+
+        <!-- Begin page -->
+        <div id="wrapper">
+
+            <!-- Top Bar Start -->
+            <?php 
+                require_once 'includes/nav.php';
+            ?>
+            <!-- Left Sidebar End -->
 
 
 
-					<button type="submit" name="submit" class="btn btn-primary mb-2">Submit</button>
-				</form>
-			</div>
-			<div class="col-md-12">
-				<?php
-					if($data){
+            <!-- ============================================================== -->
+            <!-- Start right Content here -->
+            <!-- ============================================================== -->
+            <div class="content-page">
+                <!-- Start content -->
+                <div class="content">
+                    <div class="container-fluid">
 
-						$total = 0;
-						echo "<h4>Activation Report: ". mb_strtoupper($operator) ." - ". $adv ." - " . $service . "</h4>";
-						echo "<table class='table table-hover'>
-			            <tr>
-			            <th>Date</th>
-			            <th>Activation</th>
-			            </tr>";
-			            foreach ($data as $d) {
-			            	echo "<tr>";
-					        echo "<td>" . $d->date . "</td>";
-					        echo "<td>" . $d->activation . "</td>";
-					        echo "</tr>";
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h4 class="header-title m-t-0 m-b-20">Dashboard</h4>
+                            </div>
+                        </div>
 
-					        $total += $d->activation;
-						}
-						echo "<tr>";
-						echo "<th>Total</th>";
-						echo "<th>". $total ."</th>";
-						echo "</tr>";			            
-			            echo "</table>";
-					}
-				?>
-			</div>
-		</div>
-	</div>
 
-</body>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card-box widget-inline">
+                                    <div class="row">
+                                        <div class="col-lg-3 col-sm-6">
+                                            <div class="widget-inline-box text-center">
+                                                <h3 class="m-t-10"><i class="text-primary mdi mdi-access-point-network"></i> <b>8954</b></h3>
+                                                <p class="text-muted">Lifetime total sales</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-sm-6">
+                                            <div class="widget-inline-box text-center">
+                                                <h3 class="m-t-10"><i class="text-custom mdi mdi-airplay"></i> <b>7841</b></h3>
+                                                <p class="text-muted">Income amounts</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-sm-6">
+                                            <div class="widget-inline-box text-center">
+                                                <h3 class="m-t-10"><i class="text-info mdi mdi-black-mesa"></i> <b>6521</b></h3>
+                                                <p class="text-muted">Total users</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-3 col-sm-6">
+                                            <div class="widget-inline-box text-center b-0">
+                                                <h3 class="m-t-10"><i class="text-danger mdi mdi-cellphone-link"></i> <b>325</b></h3>
+                                                <p class="text-muted">Total visits</p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end row -->
+
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card-box">
+                                    <h6 class="m-t-0">Total Revenue</h6>
+                                    <div class="text-center">
+                                        <ul class="list-inline chart-detail-list">
+                                            <li class="list-inline-item">
+                                                <p class="font-normal"><i class="fa fa-circle m-r-10 text-primary"></i>Series A</p>
+                                            </li>
+                                            <li class="list-inline-item">
+                                                <p class="font-normal"><i class="fa fa-circle m-r-10 text-muted"></i>Series B</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div id="dashboard-bar-stacked" style="height: 300px;"></div>
+                                </div>
+                            </div> <!-- end col -->
+
+                            <div class="col-lg-6">
+                                <div class="card-box">
+                                    <h6 class="m-t-0">Sales Analytics</h6>
+                                    <div class="text-center">
+                                        <ul class="list-inline chart-detail-list">
+                                            <li class="list-inline-item">
+                                                <p class="font-weight-bold"><i class="fa fa-circle m-r-10 text-primary"></i>Mobiles</p>
+                                            </li>
+                                            <li class="list-inline-item">
+                                                <p class="font-weight-bold"><i class="fa fa-circle m-r-10 text-info"></i>Tablets</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div id="dashboard-line-chart" style="height: 300px;"></div>
+                                </div>
+                            </div> <!-- end col -->
+                        </div> <!-- end row -->
+
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card-box">
+                                    <h6 class="m-t-0">Contacts</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mails m-0 table table-actions-bar">
+                                            <thead>
+                                            <tr>
+                                                <th style="min-width: 95px;">
+                                                    <div class="checkbox checkbox-primary checkbox-single m-r-15">
+                                                        <input id="action-checkbox" type="checkbox">
+                                                        <label for="action-checkbox"></label>
+                                                    </div>
+                                                </th>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Products</th>
+                                                <th>Start Date</th>
+                                            </tr>
+                                            </thead>
+
+                                            <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox2" type="checkbox">
+                                                        <label for="checkbox2"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-2.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Tomaslau
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">tomaslau@dummy.com</a>
+                                                </td>
+
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>356</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    01/11/2003
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox1" type="checkbox">
+                                                        <label for="checkbox1"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-1.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Chadengle
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">chadengle@dummy.com</a>
+                                                </td>
+
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>568</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    01/11/2003
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox3" type="checkbox">
+                                                        <label for="checkbox3"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-3.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Stillnotdavid
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">stillnotdavid@dummy.com</a>
+                                                </td>
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>201</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    12/11/2003
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox4" type="checkbox">
+                                                        <label for="checkbox4"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-4.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Kurafire
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">kurafire@dummy.com</a>
+                                                </td>
+
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>56</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    14/11/2003
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox5" type="checkbox">
+                                                        <label for="checkbox5"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-5.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Shahedk
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">shahedk@dummy.com</a>
+                                                </td>
+
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>356</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    20/11/2003
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <div class="checkbox checkbox-primary m-r-15">
+                                                        <input id="checkbox6" type="checkbox">
+                                                        <label for="checkbox6"></label>
+                                                    </div>
+
+                                                    <img src="assets/images/users/avatar-6.jpg" alt="contact-img" title="contact-img" class="rounded-circle thumb-sm" />
+                                                </td>
+
+                                                <td>
+                                                    Adhamdannaway
+                                                </td>
+
+                                                <td>
+                                                    <a href="#" class="text-muted">adhamdannaway@dummy.com</a>
+                                                </td>
+
+                                                <td>
+                                                    <b><a href="" class="text-dark"><b>956</b></a> </b>
+                                                </td>
+
+                                                <td>
+                                                    24/11/2003
+                                                </td>
+
+                                            </tr>
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- container -->
+
+
+                    <div class="footer">     
+                        <div class="pull-right hide-phone">
+                            Design and Developed By <strong class="text-custom"><a href="https://m.me/raju.rayhan" target="_blank">CodePoet</a></strong>.
+                        </div>                   
+                        <div>
+                            <strong>Adbox Bangladesh</strong> - Copyright © <?php echo date('Y') ?>
+                        </div>
+                    </div>
+
+                </div> <!-- content -->
+
+            </div>
+
+
+            <!-- ============================================================== -->
+            <!-- End Right content here -->
+            <!-- ============================================================== -->
+
+
+        </div>
+        <!-- END wrapper -->
+
+
+
+        <!-- jQuery  -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/popper.min.js"></script>
+        <script src="assets/js/bootstrap.min.js"></script>
+        <script src="assets/js/metisMenu.min.js"></script>
+        <script src="assets/js/waves.js"></script>
+        <script src="assets/js/jquery.slimscroll.js"></script>
+
+        <!--Morris Chart-->
+        <script src="assets/plugins/morris/morris.min.js"></script>
+        <script src="assets/plugins/raphael/raphael-min.js"></script>
+
+        <!-- Dashboard init -->
+        <script src="assets/pages/jquery.dashboard.js"></script>
+
+        <!-- App js -->
+        <script src="assets/js/jquery.core.js"></script>
+        <script src="assets/js/jquery.app.js"></script>
+
+    </body>
 </html>
