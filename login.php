@@ -35,6 +35,7 @@
         if($row){
             session_start();
             $_SESSION['user_name'] = $username;
+            $pdo = null;
             // echo $_SESSION['user_name'];
             header('location: index.php');
           }

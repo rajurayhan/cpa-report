@@ -5,8 +5,8 @@
         protected $db;
         protected $dbTable;
         protected $dbUser   = 'root';
-        protected $dbPass   = '';
-        // protected $dbPass   = 'mysql@1';
+        // protected $dbPass   = '';
+        protected $dbPass   = 'mysql@1';
         protected $dbHost   = 'localhost';
 
         protected $operator;
