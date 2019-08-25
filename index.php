@@ -60,7 +60,7 @@
     function getFunBoxDailyDeactivationData(){
         $deactivation     = 0;
         try {
-            $pdo    = new PDO( "mysql:host=".DB_SERVER.";charset=UTF-8", DB_USERNAME, DB_PASSWORD );
+            $pdo    = new PDO( "mysql:host=".DB_SERVER.";charset=utf8", DB_USERNAME, DB_PASSWORD );
         } catch(PDOException $e) {
           die("ERROR: Could not connect. " . $e->getMessage());
         }
@@ -284,7 +284,7 @@
         return $fbchartData;
     }
     
-    // var_dump(FBactivationChart());
+    // var_dump(getFunBoxDailyDeactivationData());
     //var_dump(getCyCasDailyDeactivationData());
 ?>
 
