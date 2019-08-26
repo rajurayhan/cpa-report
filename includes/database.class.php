@@ -98,9 +98,13 @@
                 $query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE msisdn LIKE '". $prefix ."%' AND adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
             }
 
-            else{
-                $query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
+            else{                
+                if($this->operator == 'blink' && $this->service == 'fb'){
+                    $query  = "SELECT COUNT(msisdn) as activation, DATE(d_date) as date FROM " . $this->dbTable . " WHERE adv = '" . $this->adv . "' AND d_date BETWEEN '" . $this->fromDate ."' AND '" . $this->toDate ."' GROUP BY DATE(d_date)";
+                }
             }
+
+            //echo $query;
             $stmt   = $this->pdo->prepare($query);
             
             $stmt->execute();
